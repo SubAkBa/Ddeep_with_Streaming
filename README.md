@@ -7,4 +7,4 @@
 # 기술 스택
 
 - FaceNet, TripletLoss, TensorFlow -> ArcFace, MobileNetV3, Pytorch
-- Flask, Android Java
+- Flask, Android Java, tkiner
