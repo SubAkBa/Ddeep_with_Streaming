@@ -1,5 +1,7 @@
 # server 코드
-
+import base64
+import io
+from rawkit import raw
 from PIL import Image
 import argparse
 from config import get_config
@@ -94,14 +96,31 @@ def getframe():
     print("===============")
 
     get_frame = request.json["full_frame"]
-    list_frame = list(get_frame.encode())
-    print("size : ", len(list_frame))
-    np_frame = np.array(list_frame[ : 18000])
-    np_frame = np.reshape(np_frame, (100, 60, 3))
-
-    img_frame = Image.fromarray(np_frame, "RGB")
-    img_frame.save("frame" + str(count) + ".jpg")
-    count += 1
+    # print("get_frame : ", get_frame)
+    base_frame = base64.b64decode(get_frame)
+    # print("decode_frame ; ", base_frame)
+    
+    list_frame = list(base_frame)
+    new_frame = []
+    print("base_frame ; ", list_frame)
+    for i in range(len(list_frame)):
+        if list_frame[i] < 0:
+            new_frame.append((256 - list_frame[i]) * -1)
+        else:
+            new_frame.append(list_frame[i])
+            
+    # print("new_frame ; ", new_frame)
+    # print("base_frame_element ; ", list_frame[5])
+    
+    size = len(list_frame)
+    if(size >= 10800):
+        np_frame = np.array(list_frame)
+        np_frame = np.uint8(np_frame)
+        np_frame = np_frame[ : 10800]
+        np_frame = np.reshape(np_frame, (60, 60, 3))    
+        img_frame = Image.fromarray(np_frame, "RGB")
+        img_frame.save("frame" + str(count) + ".jpg")
+        count += 1
 
     # bboxes, faces = mtcnn.align_multi(pil_frame, conf.face_limit, conf.min_face_size)
 
@@ -110,4 +129,3 @@ def getframe():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
