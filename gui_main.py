@@ -5,12 +5,13 @@ from src import detect_faces
 import numpy as np
 import requests
 
+# Using 'https://github.com/TropComplique/mtcnn-pytorch'
 # 웹캠 함수
 def show_frame():
     global face_list
 
     _, frame = cap.read()
-    # frame = cv2.flip(frame, 1)
+    frame = cv2.flip(frame, 1)
     cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     face_list = []
@@ -35,18 +36,18 @@ def show_frame():
             cv2.rectangle(cv2image, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0), 3)
             sub_face = cv2image[bb[i][1]: bb[i][3], bb[i][0]: bb[i][2]]
             face_list.append(np.resize(np.array(sub_face).tolist(), (112, 112, 3)).tolist())
-    #
-    #     URL = server + "register_check"
-    #     json_feed_verify = {'face_list': face_list}
-    #     response = requests.post(URL, json=json_feed_verify)
-    #     check_list = response.json()["check_list"]
-    #
-        # for idx in range(len(check_list)):
-        #     if check_list[idx] == 'unknown':
-        #         cv2image[bb[idx][1] : bb[idx][3], bb[idx][0] : bb[idx][2]] = cv2.GaussianBlur(cv2image[bb[idx][1] : bb[idx][3], bb[idx][0] : bb[idx][2]], (23, 23), 10)
-            cv2image[bb[i][1]: bb[i][3], bb[i][0]: bb[i][2]] = cv2.GaussianBlur(cv2image[bb[i][1]: bb[i][3], bb[i][0]: bb[i][2]], (23, 23), 10)
-            # else:
-            #     cv2.putText(cv2image, check_list[idx], (bb[idx][0], bb[idx][1]), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv2.LINE_AA)
+
+        URL = server + "register_check"
+        json_feed_verify = {'face_list': face_list}
+        response = requests.post(URL, json=json_feed_verify)
+        check_list = response.json()["check_list"]
+
+        for idx in range(len(check_list)):
+            if check_list[idx] == 'unknown':
+                cv2image[bb[idx][1] : bb[idx][3], bb[idx][0] : bb[idx][2]] = cv2.GaussianBlur(cv2image[bb[idx][1] : bb[idx][3], bb[idx][0] : bb[idx][2]], (23, 23), 10)
+            # cv2image[bb[i][1]: bb[i][3], bb[i][0]: bb[i][2]] = cv2.GaussianBlur(cv2image[bb[i][1]: bb[i][3], bb[i][0]: bb[i][2]], (23, 23), 10)
+            else:
+                cv2.putText(cv2image, check_list[idx], (bb[idx][0], bb[idx][1]), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv2.LINE_AA)
 
         imgtk = ImageTk.PhotoImage(image=Image.fromarray(cv2image))
         lmain.imgtk = imgtk
@@ -69,14 +70,14 @@ def remove_btn_click():
 
     URL = server + "delete"
     json_feed_delete = {'name' : name}
-    response = requests.post(URL, json=json_feed_delete)
+    response = requests.delete(URL, json=json_feed_delete)
 
 
 
 server = "http://104.196.231.8:5000/"
 
 width, height = 800, 600
-cap = cv2.VideoCapture("0")
+cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
